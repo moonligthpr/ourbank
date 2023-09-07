@@ -1,1 +1,62 @@
-jjjkn
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+</head>
+<body>
+    <h1>QR Code Scanner</h1>
+    <video id="qr-video" width="100%" height="auto" autoplay></video>
+    <button id="scan-button">Start Scanning</button>
+
+    <script src="https://rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script>
+        const videoElement = document.getElementById('qr-video');
+        const scanButton = document.getElementById('scan-button');
+
+        // Function to start the QR code scanner
+        const startScanner = () => {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then((stream) => {
+                        videoElement.srcObject = stream;
+                        const QRCode = new QRCodeDecoder();
+
+                        // Continuously check for QR codes in the video stream
+                        const checkQRCode = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = videoElement.videoWidth;
+                            canvas.height = videoElement.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                            // Decode QR code
+                            const result = QRCode.decode(imageData);
+                            if (result) {
+                                window.open(result, '_blank'); // Open the URL in a new tab
+                            }
+
+                            // Continue checking for QR codes
+                            requestAnimationFrame(checkQRCode);
+                        };
+
+                        // Start checking for QR codes
+                        checkQRCode();
+                    })
+                    .catch((error) => {
+                        console.error('Error accessing the camera:', error);
+                        alert('Error accessing the camera. Please grant camera access and refresh the page.');
+                    });
+            } else {
+                console.error('getUserMedia is not supported');
+                alert('getUserMedia is not supported in this browser.');
+            }
+        };
+
+        scanButton.addEventListener('click', startScanner);
+    </script>
+</body>
+</html>
+
